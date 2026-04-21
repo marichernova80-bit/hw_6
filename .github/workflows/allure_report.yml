@@ -20,10 +20,11 @@ jobs:
         run: ./gradlew test
         continue-on-error: true
 
-      - name: Install Allure
+      - name: Install Allure CLI
         run: |
-          wget https://github.com
-          sudo dpkg -i allure_2.24.0-1_allure.deb
+          wget "https://github.com"
+          sudo dpkg -i allure_2.24.0-1_allure.deb || sudo apt-get install -f -y
+
 
       - name: Generate Report
         run: |
