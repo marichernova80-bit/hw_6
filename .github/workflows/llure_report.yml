@@ -1,0 +1,52 @@
+name: Allure CRUD Tests Report
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+
+      - name: Generate Allure Report
+        run: ./gradlew allureReport
+        if: always()
+
+
+      - name: Copy report to project folder
+        run: |
+          mkdir -p reports
+          cp -R app/build/reports/allure-report/* reports/
+        if: always()
+
+
+      - name: Commit and Push Report
+        run: |
+          git config --local user.email "github-actions[bot]@://github.com"
+          git config --local user.name "github-actions[bot]"
+          git add reports/
+          git commit -m "Update Allure report in reports/ folder" || echo "No changes to commit"
+          git push
+        if: always()

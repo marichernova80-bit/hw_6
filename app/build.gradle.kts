@@ -1,20 +1,20 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.allure)
+
 }
+
+
 
 android {
     namespace = "com.example.hw_6"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.hw_6"
-        minSdk = 34
-        targetSdk = 36
+        minSdk = 26
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -36,6 +36,19 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+allure {
+    version.set("2.24.0")
+    adapter {
+        allureJavaVersion.set("2.24.0")
+        aspectjVersion.set("1.9.20")
+        frameworks {
+            junit4 {
+                enabled.set(true)
+            }
+        }
     }
 }
 
@@ -64,4 +77,5 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.11.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
 
+    testImplementation("io.qameta.allure:allure-junit4:2.24.0")
 }
