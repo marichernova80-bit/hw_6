@@ -2,7 +2,7 @@ name: Allure Report
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "qa-kotlin-6-1" ]
 
 permissions:
   contents: write
