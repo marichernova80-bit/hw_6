@@ -4,9 +4,6 @@ on:
   push:
     branches: [ "qa-kotlin-6-1" ]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 permissions:
   contents: write
 
@@ -28,21 +25,23 @@ jobs:
         run: ./gradlew test --continue
         continue-on-error: true
 
-      # Используем официальный экшен для установки Allure CLI
-      - name: Setup Allure
-        uses: mgrybyk/setup-allure@v1
-        with:
-          allure-version: 2.24.0
+      - name: Install Allure CLI
+        run: |
+          # Установка через официальный репозиторий deb-пакетов
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://github.com
+          sudo dpkg -i allure_2.24.0-1_allure.deb || sudo apt-get install -f -y
 
       - name: Generate Report
         run: |
-          # Ищем папку с результатами
+          # Находим результаты тестов
           RESULTS_DIR=$(find . -type d -name "allure-results" | head -n 1)
           if [ -z "$RESULTS_DIR" ]; then
-            echo "Результаты не найдены!"
+            echo "Results not found!"
             exit 1
           fi
-          # Генерируем отчет
+          # Генерируем отчет в папку reports
           allure generate "$RESULTS_DIR" -o reports --clean
 
       - name: Commit and Push Report
@@ -50,5 +49,6 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
+          # Добавляем отчет в репозиторий
           git commit -m "Update Allure report" || echo "No changes"
           git push
