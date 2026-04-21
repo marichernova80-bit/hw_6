@@ -1,19 +1,17 @@
-name: Allure CRUD Tests Report
+name: Allure Report
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
 
 permissions:
   contents: write
 
 jobs:
-  build-and-report:
+  allure:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -22,31 +20,40 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-
-      - name: Run Unit Tests
+      - name: Run Tests
+        # Тесты создадут сырые данные в папку build/allure-results
         run: ./gradlew test
+        continue-on-error: true # Чтобы отчет создался, даже если тесты упали
 
-
-      - name: Generate Allure Report
-        run: ./gradlew allureReport
+      - name: Get Allure history
+        uses: actions/checkout@v4
         if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
 
+      # Этот шаг заменяет сломанный плагин Gradle
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
+        with:
+          allure_results: app/build/allure-results
+          allure_history: allure-history
+          keep_reports: 20
 
-      - name: Copy report to project folder
+      # Копируем отчет в папку reports для выполнения условия задания
+      - name: Copy to reports folder
         run: |
           mkdir -p reports
-          cp -R app/build/reports/allure-report/* reports/
+          cp -R allure-history/${{ github.run_number }}/* reports/
         if: always()
 
-
-      - name: Commit and Push Report
+      - name: Commit and Push to GitHub
         run: |
-          git config --local user.email "github-actions[bot]@://github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           git add reports/
-          git commit -m "Update Allure report in reports/ folder" || echo "No changes to commit"
+          git commit -m "Update Allure report" || echo "No changes to commit"
           git push
         if: always()

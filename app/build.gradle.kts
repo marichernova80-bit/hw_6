@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.allure)
 
 }
 
@@ -9,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.example.hw_6"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.hw_6"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -36,19 +35,6 @@ android {
     }
     buildFeatures {
         compose = true
-    }
-}
-
-allure {
-    version.set("2.24.0")
-    adapter {
-        allureJavaVersion.set("2.24.0")
-        aspectjVersion.set("1.9.20")
-        frameworks {
-            junit4 {
-                enabled.set(true)
-            }
-        }
     }
 }
 
