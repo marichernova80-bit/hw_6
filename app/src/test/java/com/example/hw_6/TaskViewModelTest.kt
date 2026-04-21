@@ -2,8 +2,10 @@ package com.example.hw_6
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.kotlin.*
 
+@RunWith(org.junit.runners.JUnit4::class)
 class TaskViewModelTest {
 
     private val mockRepository: TaskRepository = mock()

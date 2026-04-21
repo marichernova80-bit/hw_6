@@ -64,4 +64,5 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
 
     testImplementation("io.qameta.allure:allure-junit4:2.24.0")
+    testImplementation("org.aspectj:aspectjweaver:1.9.22")
 }
