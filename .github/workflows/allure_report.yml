@@ -6,49 +6,34 @@ on:
 
 permissions:
   contents: write
-
 jobs:
   allure:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
       - name: Run Tests
-        run: ./gradlew test --continue
+        run: ./gradlew test
         continue-on-error: true
 
-      - name: Install Allure CLI
+      - name: Install Allure
         run: |
-          # Установка через официальный репозиторий deb-пакетов
-          sudo apt-get update
-          sudo apt-get install -y wget
           wget https://github.com
-          sudo dpkg -i allure_2.24.0-1_allure.deb || sudo apt-get install -f -y
+          sudo dpkg -i allure_2.24.0-1_allure.deb
 
       - name: Generate Report
         run: |
-          # Находим результаты тестов
-          RESULTS_DIR=$(find . -type d -name "allure-results" | head -n 1)
-          if [ -z "$RESULTS_DIR" ]; then
-            echo "Results not found!"
-            exit 1
-          fi
-          # Генерируем отчет в папку reports
-          allure generate "$RESULTS_DIR" -o reports --clean
+          # Ищем папку, которую мы создали в коде теста
+          allure generate app/build/allure-results -o reports --clean
 
-      - name: Commit and Push Report
+      - name: Commit and Push
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
-          # Добавляем отчет в репозиторий
-          git commit -m "Update Allure report" || echo "No changes"
+          git commit -m "Add allure report" || echo "No changes"
           git push
