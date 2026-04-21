@@ -1,41 +1,49 @@
-# Создаем нужные папки
-  mkdir -p .github/workflows
-  
-  # Создаем файл и записываем в него скрипт
-  cat <<EOF > .github/workflows/allure_report.yml
 name: Allure Report
+
 on:
   push:
     branches: [ "main", "master" ]
+
 permissions:
   contents: write
+
 jobs:
   allure:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
+
       - name: Run Tests
         run: ./gradlew test
         continue-on-error: true
-      - name: Generate Report
+
+      - name: Generate Allure Report
         uses: simple-elf/allure-report-action@v1.7
         if: always()
         with:
           allure_results: app/build/allure-results
           allure_history: allure-history
+          keep_reports: 20
+
       - name: Copy to reports folder
         run: |
           mkdir -p reports
-          cp -R allure-history/* reports/
-      - name: Deploy to GitHub
+          cp -R allure-history/${{ github.run_number }}/* reports/ || cp -R allure-history/* reports/
+        if: always()
+
+      - name: Commit and Push Report
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
-          git commit -m "Update Allure report" || echo "No changes"
+          git commit -m "Update Allure report in reports folder" || echo "No changes to commit"
           git push
-  EOF
+        if: always()
