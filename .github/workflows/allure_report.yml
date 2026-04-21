@@ -30,10 +30,11 @@ jobs:
 
       - name: Install Allure CLI
         run: |
-          curl -L https://github.com -o allure.tgz
+          curl -L "https://github.com" -o allure.tgz
           tar -zxf allure.tgz
           sudo mv allure-2.24.0 /opt/allure
           sudo ln -s /opt/allure/bin/allure /usr/bin/allure
+
 
       - name: Generate Report
         run: |
