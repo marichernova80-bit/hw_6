@@ -20,15 +20,15 @@ jobs:
         run: ./gradlew test
         continue-on-error: true
 
-      - name: Install Allure CLI
+      - name: Download Allure CLI
         run: |
-          wget "https://github.com"
-          sudo dpkg -i allure_2.24.0-1_allure.deb || sudo apt-get install -f -y
-
+          curl -L https://github.com -o allure.tgz
+          tar -zxf allure.tgz
+          echo "$(pwd)/allure-2.24.0/bin" >> $GITHUB_PATH
 
       - name: Generate Report
         run: |
-          # Ищем папку, которую мы создали в коде теста
+          # Используем путь к результатам, который создает ваш код теста
           allure generate app/build/allure-results -o reports --clean
 
       - name: Commit and Push
@@ -36,5 +36,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
-          git commit -m "Add allure report" || echo "No changes"
+          git commit -m "Update Allure report" || echo "No changes"
           git push

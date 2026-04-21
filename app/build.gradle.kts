@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-
+    alias(libs.plugins.allure)
 }
 
 
@@ -37,6 +37,17 @@ android {
         compose = true
     }
 
+}
+
+allure {
+    version.set("2.24.0")
+    adapter {
+        frameworks {
+            junit4 {
+                enabled.set(true)
+            }
+        }
+    }
 }
 
 dependencies {
