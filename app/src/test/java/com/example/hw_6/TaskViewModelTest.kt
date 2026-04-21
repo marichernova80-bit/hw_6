@@ -8,6 +8,8 @@ import org.mockito.kotlin.*
 @RunWith(org.junit.runners.JUnit4::class)
 class TaskViewModelTest {
 
+    @get:org.junit.Rule
+    val allureRule = io.qameta.allure.junit4.AllureJunit4()
     private val mockRepository: TaskRepository = mock()
     private val viewModel = TaskViewModel(mockRepository)
 
