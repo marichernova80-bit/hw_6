@@ -28,21 +28,21 @@ jobs:
         run: ./gradlew test --continue
         continue-on-error: true
 
-      - name: Install Allure CLI
-        run: |
-          curl -L "https://github.com" -o allure.tgz
-          tar -zxf allure.tgz
-          sudo mv allure-2.24.0 /opt/allure
-          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
-
+      # Используем официальный экшен для установки Allure CLI
+      - name: Setup Allure
+        uses: mgrybyk/setup-allure@v1
+        with:
+          allure-version: 2.24.0
 
       - name: Generate Report
         run: |
+          # Ищем папку с результатами
           RESULTS_DIR=$(find . -type d -name "allure-results" | head -n 1)
           if [ -z "$RESULTS_DIR" ]; then
-            echo "Allure results not found!"
+            echo "Результаты не найдены!"
             exit 1
           fi
+          # Генерируем отчет
           allure generate "$RESULTS_DIR" -o reports --clean
 
       - name: Commit and Push Report
@@ -50,5 +50,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
-          git commit -m "Update Allure report" || echo "No changes to commit"
+          git commit -m "Update Allure report" || echo "No changes"
           git push
