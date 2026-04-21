@@ -22,7 +22,7 @@ jobs:
           cache: gradle
 
       - name: Run Tests
-        run: ./gradlew test
+        run: ./gradlew test --continue
         continue-on-error: true
 
       - name: Install Allure CLI
@@ -33,12 +33,19 @@ jobs:
           sudo ln -s /opt/allure/bin/allure /usr/bin/allure
 
       - name: Generate Report
-        run: allure generate app/build/allure-results -o reports --clean
+        run: |
+          # Ищем, где лежат результаты (вдруг путь отличается)
+          RESULTS_DIR=$(find . -type d -name "allure-results" | head -n 1)
+          if [ -z "$RESULTS_DIR" ]; then
+            echo "результаты Allure не найдены!"
+            exit 1
+          fi
+          allure generate "$RESULTS_DIR" -o reports --clean
 
       - name: Commit and Push Report
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
-          git commit -m "Update Allure report in reports folder" || echo "No changes to commit"
+          git commit -m "Update Allure report" || echo "No changes to commit"
           git push
