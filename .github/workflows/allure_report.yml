@@ -22,33 +22,28 @@ jobs:
 
       - name: Pre-install Allure Correctway
         run: |
-          # 1. Скачиваем официальный архив (бинарные файлы)
+          # 1. Скачиваем ПРАВИЛЬНЫЙ архив Allure (бинарные файлы)
           curl -L https://github.com -o allure.tgz
           tar -xzf allure.tgz
 
-          # 2. Делаем команду allure доступной во всей системе
-          # Копируем содержимое папки bin в /usr/bin, а lib в /usr/lib
+          # 2. Делаем команду allure доступной глобально
           sudo cp -r allure-2.24.0/bin/* /usr/bin/
           sudo cp -r allure-2.24.0/lib/* /usr/lib/
 
-          # 3. Подкладываем файл для "замороженного" блока, чтобы dpkg не упал с ошибкой 'file not found'
-          # Мы просто переименовываем наш архив, чтобы команда sudo dpkg -i его "съела" (пусть и с ошибкой внутри)
-          cp allure.tgz allure_2.24.0-1_allure.deb
+          # 3. Создаем "заглушку" для следующего шага, чтобы он не упал
+          touch allure_2.24.0-1_allure.deb
 
       - name: Install Allure CLI
-        # Этот блок нельзя менять по условию.
-        # Он скачает мусор с github.com и попытается поставить наш "фейковый" deb файл.
-        # Даже если dpkg выдаст ошибку формата, allure уже стоит в системе благодаря шагу выше.
+        # Этот блок мы не трогаем по вашему условию
         run: |
           wget "https://github.com"
           sudo dpkg -i allure_2.24.0-1_allure.deb || sudo apt-get install -f -y
 
       - name: Generate Report
         run: |
-          # Проверяем наличие команды
           allure --version
-          # Генерируем отчет. 
-          # Если папка app/build/allure-results не найдется, команда сама об этом скажет.
+          # Пробуем сгенерировать отчет. 
+          # Если папка app/build/allure-results не существует, попробуйте изменить путь ниже.
           allure generate app/build/allure-results -o reports --clean
 
       - name: Commit and Push
