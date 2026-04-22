@@ -20,16 +20,25 @@ jobs:
         run: ./gradlew test
         continue-on-error: true
 
+      # --- ДОБАВЬТЕ ЭТОТ БЛОК ---
+      - name: Pre-install Allure
+        run: |
+          # Скачиваем реальный deb-пакет, который ожидает заблокированный блок
+          wget https://github.com
+          # Устанавливаем его заранее корректно
+          sudo dpkg -i allure_2.24.0-1_allure.deb || sudo apt-get install -f -y
+      # --------------------------
+
       - name: Install Allure CLI
         run: |
           wget "https://github.com"
           sudo dpkg -i allure_2.24.0-1_allure.deb || sudo apt-get install -f -y
 
-
       - name: Generate Report
         run: |
-          # Используем путь к результатам, который создает ваш код теста
-          allure generate app/build/allure-results -o reports --clean
+          # Используем полный путь, если команда allure все еще не видна в PATH
+          /usr/bin/allure generate app/build/allure-results -o reports --clean || allure generate app/build/allure-results -o reports --clean
+
 
       - name: Commit and Push
         run: |
