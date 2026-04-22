@@ -5,12 +5,11 @@ on:
     branches: [ "qa-kotlin-6-1" ]
 
 permissions:
-  contents: write # Критически важно для записи отчета в репозиторий
+  contents: write
 
 jobs:
-  allure-job:
-    runs-on: ubuntu-latest # Стандартная среда выполнения в GitHub
-
+  allure:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,33 +22,28 @@ jobs:
           cache: gradle
 
       - name: Run Tests
-        # Запускаем тесты. Даже если они упадут, отчет будет создан
+        # Ваши тесты создадут JSON файлы через функцию generateAllureStep
         run: ./gradlew test --continue
         continue-on-error: true
 
+      # План Б: используем встроенный установщик, чтобы не писать ссылки
       - name: Install Allure CLI
-        # Самый надежный способ: скачиваем архив и прописываем путь
         run: |
-          curl -L "https://github.com" -o allure.tgz
-          tar -zxf allure.tgz
-          echo "$(pwd)/allure-2.24.0/bin" >> $GITHUB_PATH
+          sudo apt-get update
+          sudo apt-get install -y wget
+          # Используем команду, которая сама найдет файл, без ручного ввода домена
+          wget -O allure.deb https://github.com
+          sudo dpkg -i allure.deb || sudo apt-get install -f -y
 
-      - name: Generate Allure Report
+      - name: Generate Report
         run: |
-          # Создаем отчет из папки, которую генерирует ваш TaskViewModelTest
+          # Генерируем отчет из папки, созданной вашим кодом
           allure generate app/build/allure-results -o reports --clean
 
-      - name: Commit and Push Report
+      - name: Upload to GitHub
         run: |
-          git config --local user.email "github-actions[bot]@://github.com"
-          git config --local user.name "github-actions[bot]"
-          
-          # Проверяем, создалась ли папка reports
-          if [ -d "reports" ]; then
-            git add reports/
-            # Коммитим только если есть изменения
-            git commit -m "docs: update allure report [skip ci]" || echo "No changes to commit"
-            git push origin HEAD:${{ github.ref }}
-          else
-            echo "Папка reports не найдена, пропускаем пуш."
-          fi
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add reports/
+          git commit -m "Update Allure report [skip ci]" || echo "No changes"
+          git push origin HEAD:${{ github.ref }}
