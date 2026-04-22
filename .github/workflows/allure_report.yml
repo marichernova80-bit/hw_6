@@ -5,51 +5,51 @@ on:
     branches: [ "qa-kotlin-6-1" ]
 
 permissions:
-  contents: write
+  contents: write # Критически важно для записи отчета в репозиторий
+
 jobs:
-  allure:
-    runs-on: ubuntu-latest
+  allure-job:
+    runs-on: ubuntu-latest # Стандартная среда выполнения в GitHub
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
 
       - name: Run Tests
-        run: ./gradlew test
+        # Запускаем тесты. Даже если они упадут, отчет будет создан
+        run: ./gradlew test --continue
         continue-on-error: true
 
-      - name: Pre-install Allure Correctway
-        run: |
-          # 1. Скачиваем ПРАВИЛЬНЫЙ архив Allure (бинарные файлы)
-          curl -L https://github.com -o allure.tgz
-          tar -xzf allure.tgz
-
-          # 2. Делаем команду allure доступной глобально
-          sudo cp -r allure-2.24.0/bin/* /usr/bin/
-          sudo cp -r allure-2.24.0/lib/* /usr/lib/
-
-          # 3. Создаем "заглушку" для следующего шага, чтобы он не упал
-          touch allure_2.24.0-1_allure.deb
-
       - name: Install Allure CLI
-        # Этот блок мы не трогаем по вашему условию
+        # Самый надежный способ: скачиваем архив и прописываем путь
         run: |
-          wget "https://github.com"
-          sudo dpkg -i allure_2.24.0-1_allure.deb || sudo apt-get install -f -y
+          curl -L "https://github.com" -o allure.tgz
+          tar -zxf allure.tgz
+          echo "$(pwd)/allure-2.24.0/bin" >> $GITHUB_PATH
 
-      - name: Generate Report
+      - name: Generate Allure Report
         run: |
-          allure --version
-          # Пробуем сгенерировать отчет. 
-          # Если папка app/build/allure-results не существует, попробуйте изменить путь ниже.
+          # Создаем отчет из папки, которую генерирует ваш TaskViewModelTest
           allure generate app/build/allure-results -o reports --clean
 
-      - name: Commit and Push
+      - name: Commit and Push Report
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add reports/
-          git commit -m "Update Allure report" || echo "No changes"
-          git push
+          git config --local user.email "github-actions[bot]@://github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Проверяем, создалась ли папка reports
+          if [ -d "reports" ]; then
+            git add reports/
+            # Коммитим только если есть изменения
+            git commit -m "docs: update allure report [skip ci]" || echo "No changes to commit"
+            git push origin HEAD:${{ github.ref }}
+          else
+            echo "Папка reports не найдена, пропускаем пуш."
+          fi
