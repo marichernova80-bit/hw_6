@@ -20,14 +20,18 @@ jobs:
         run: ./gradlew test
         continue-on-error: true
 
-      # --- ДОБАВЬТЕ ЭТОТ БЛОК ---
-      - name: Pre-install Allure
+      # Добавляем этот шаг перед "замороженным" блоком
+      - name: Force Prepare Allure Deb
         run: |
-          # Скачиваем реальный deb-пакет, который ожидает заблокированный блок
-          wget https://github.com
-          # Устанавливаем его заранее корректно
+          # 1. Скачиваем ПРАВИЛЬНЫЙ файл, который ожидает заблокированный блок
+          wget -O allure_2.24.0-1_allure.deb https://github.com
+
+          # 2. Устанавливаем зависимости вручную (openjdk часто нужен для работы allure)
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jre-headless
+
+          # 3. Предварительно устанавливаем пакет
           sudo dpkg -i allure_2.24.0-1_allure.deb || sudo apt-get install -f -y
-      # --------------------------
 
       - name: Install Allure CLI
         run: |
@@ -36,9 +40,9 @@ jobs:
 
       - name: Generate Report
         run: |
-          # Используем полный путь, если команда allure все еще не видна в PATH
-          /usr/bin/allure generate app/build/allure-results -o reports --clean || allure generate app/build/allure-results -o reports --clean
-
+          # Используем просто allure, так как после успешной установки он должен быть в PATH
+          allure generate app/build/allure-results -o reports --clean
+      
 
       - name: Commit and Push
         run: |
