@@ -10,7 +10,7 @@ class TaskViewModelTest {
 
     private val mockRepository: TaskRepository = mock()
     private val viewModel = TaskViewModel(mockRepository)
-
+    val resultsDir = File("build/allure-results")
     private fun generateAllureStep(name: String) {
         val resultsDir = File("build/allure-results")
         if (!resultsDir.exists()) resultsDir.mkdirs()
