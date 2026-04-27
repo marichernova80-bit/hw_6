@@ -19,37 +19,24 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
       - name: Run Tests
         run: ./gradlew test
         continue-on-error: true
 
-      - name: Install Allure (Safe Method)
-        run: |
-          # Автоматически находим ссылку на последний .tgz архив Allure
-          URL=$(curl -s https://github.com | grep "browser_download_url.*tgz" | cut -d '"' -f 4)
-          echo "Downloading from: $URL"
-          curl -L "$URL" -o allure.tgz
-          
-          # Распаковываем
-          tar -zxf allure.tgz
-          
-          # Находим папку bin (она может называться allure-2.x.x)
-          ALLURE_BIN=$(find $(pwd) -name allure -type f | grep bin/allure | head -n 1)
-          echo "ALLURE_PATH=$(dirname $ALLURE_BIN)" >> $GITHUB_ENV
-          chmod +x $ALLURE_BIN
+      - name: Install Allure CLI
+        # Используем npm для установки — это работает на GitHub всегда и без ошибок в ссылках
+        run: sudo npm install -g allure-commandline --save-dev
 
       - name: Generate Report
         run: |
-          # Используем переменную пути, которую мы сохранили шагом ранее
-          $ALLURE_PATH/allure generate app/build/allure-results -o reports --clean
+          # Теперь команда allure доступна глобально во всей системе
+          allure generate app/build/allure-results -o reports --clean
 
       - name: Commit and Push Report
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
-          # [skip ci] нужен, чтобы избежать бесконечного цикла
           git commit -m "docs: update allure report [skip ci]" || echo "No changes"
           git push origin HEAD:${{ github.ref }}
