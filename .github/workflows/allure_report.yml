@@ -25,12 +25,10 @@ jobs:
         continue-on-error: true
 
       - name: Install Allure CLI
-        # Используем npm для установки — это работает на GitHub всегда и без ошибок в ссылках
         run: sudo npm install -g allure-commandline --save-dev
 
       - name: Generate Report
         run: |
-          # Теперь команда allure доступна глобально во всей системе
           allure generate app/build/allure-results -o reports --clean
 
       - name: Commit and Push Report
