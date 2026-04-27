@@ -26,14 +26,15 @@ jobs:
         continue-on-error: true
 
       - name: Download Allure Binary
-        run: |
-          curl -L "https://github.com" -o allure.tgz
-          tar -zxf allure.tgz
+        # Используем '>', чтобы ссылка точно не оборвалась
+        run: >
+          curl -L "https://github.com" 
+          -o allure.tgz && 
+          tar -zxf allure.tgz && 
           chmod +x allure-2.24.0/bin/allure
 
       - name: Generate Report
         run: |
-          # Добавлен прямой путь к бинарному файлу
           ./allure-2.24.0/bin/allure generate app/build/allure-results -o reports --clean
 
       - name: Commit and Push Report
@@ -41,6 +42,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
-          # [skip ci] чтобы избежать бесконечного цикла запусков
-          git commit -m "docs: update allure report [skip ci]" || echo "No changes to commit"
+          git commit -m "docs: update allure report [skip ci]" || echo "No changes"
           git push origin HEAD:${{ github.ref }}
