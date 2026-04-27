@@ -22,28 +22,25 @@ jobs:
           cache: gradle
 
       - name: Run Tests
-        # Ваши тесты создадут JSON файлы через функцию generateAllureStep
-        run: ./gradlew test --continue
+        run: ./gradlew test
         continue-on-error: true
 
-      # План Б: используем встроенный установщик, чтобы не писать ссылки
-      - name: Install Allure CLI
+      - name: Download Allure Binary
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget
-          # Используем команду, которая сама найдет файл, без ручного ввода домена
-          wget -O allure.deb https://github.com
-          sudo dpkg -i allure.deb || sudo apt-get install -f -y
+          curl -L "https://github.com" -o allure.tgz
+          tar -zxf allure.tgz
+          chmod +x allure-2.24.0/bin/allure
 
       - name: Generate Report
         run: |
-          # Генерируем отчет из папки, созданной вашим кодом
-          allure generate app/build/allure-results -o reports --clean
+          # Добавлен прямой путь к бинарному файлу
+          ./allure-2.24.0/bin/allure generate app/build/allure-results -o reports --clean
 
-      - name: Upload to GitHub
+      - name: Commit and Push Report
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
-          git commit -m "Update Allure report [skip ci]" || echo "No changes"
+          # [skip ci] чтобы избежать бесконечного цикла запусков
+          git commit -m "docs: update allure report [skip ci]" || echo "No changes to commit"
           git push origin HEAD:${{ github.ref }}
