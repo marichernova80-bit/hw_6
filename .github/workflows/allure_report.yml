@@ -25,22 +25,31 @@ jobs:
         run: ./gradlew test
         continue-on-error: true
 
-      - name: Download Allure Binary
-        # Используем '>', чтобы ссылка точно не оборвалась
-        run: >
-          curl -L "https://github.com" 
-          -o allure.tgz && 
-          tar -zxf allure.tgz && 
-          chmod +x allure-2.24.0/bin/allure
+      - name: Install Allure (Safe Method)
+        run: |
+          # Автоматически находим ссылку на последний .tgz архив Allure
+          URL=$(curl -s https://github.com | grep "browser_download_url.*tgz" | cut -d '"' -f 4)
+          echo "Downloading from: $URL"
+          curl -L "$URL" -o allure.tgz
+          
+          # Распаковываем
+          tar -zxf allure.tgz
+          
+          # Находим папку bin (она может называться allure-2.x.x)
+          ALLURE_BIN=$(find $(pwd) -name allure -type f | grep bin/allure | head -n 1)
+          echo "ALLURE_PATH=$(dirname $ALLURE_BIN)" >> $GITHUB_ENV
+          chmod +x $ALLURE_BIN
 
       - name: Generate Report
         run: |
-          ./allure-2.24.0/bin/allure generate app/build/allure-results -o reports --clean
+          # Используем переменную пути, которую мы сохранили шагом ранее
+          $ALLURE_PATH/allure generate app/build/allure-results -o reports --clean
 
       - name: Commit and Push Report
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add reports/
+          # [skip ci] нужен, чтобы избежать бесконечного цикла
           git commit -m "docs: update allure report [skip ci]" || echo "No changes"
           git push origin HEAD:${{ github.ref }}
