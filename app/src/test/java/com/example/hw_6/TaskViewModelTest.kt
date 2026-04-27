@@ -30,7 +30,7 @@ class TaskViewModelTest {
     }
 
     @Test
-    fun `test CREATE`() {
+    fun testCreate() {
         val taskTitle = "Buy groceries"
 
         viewModel.addTask(taskTitle)
@@ -40,7 +40,7 @@ class TaskViewModelTest {
     }
 
     @Test
-    fun `test READ`() {
+    fun testRead() {
         val mockData = listOf(Task(1, "Task 1", false), Task(2, "Task 2", true))
         whenever(mockRepository.getAllTasks()).thenReturn(mockData)
 
@@ -54,7 +54,7 @@ class TaskViewModelTest {
     }
 
     @Test
-    fun `test UPDATE`() {
+    fun testUpdate() {
         val initialTask = Task(1, "Original Title", false)
 
         viewModel.toggleTaskStatus(initialTask)
@@ -66,7 +66,7 @@ class TaskViewModelTest {
     }
 
     @Test
-    fun `test DELETE operation`() {
+    fun testDeleteOperation() {
         val taskIdToDelete = 10
 
         viewModel.deleteTask(taskIdToDelete)
