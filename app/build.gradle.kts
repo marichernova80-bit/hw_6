@@ -77,4 +77,9 @@ dependencies {
 
     testImplementation("io.qameta.allure:allure-junit4:2.24.0")
     testImplementation("org.aspectj:aspectjweaver:1.9.22")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
